@@ -10,6 +10,8 @@ For detailed information about the implementation, tests and experiments, see th
 
 ## Usage
 
+### World and end-effector frames
+
 GeoFIK uses frame $$E$$ as end-effector frame, and frame $$O$$ as world frame, as shown in the picture below. In [franka_ros](https://frankaemika.github.io/docs/franka_ros.html) $$E$$ and $$O$$ are named `panda_hand_tcp` and `panda_link0`, respectively. 
 
 ![frames of the franka arm](frames.png)
@@ -21,5 +23,9 @@ T8E = [[ 0.70710678  0.70710678  0.          0.        ]
        [ 0.          0.          1.          0.1034    ]
        [ 0.          0.          0.          1.       ]]
 ```
-Therefore, when working with frame 8, given a desired pose, $${}^{O}\_{8}$$𝐓, the solver must be called with $${}^{O}\_{E}$$𝐓 = $${}^{O}\_{8}$$𝐓 $${}^{8}\_{E}$$𝐓
+Therefore, when working with frame 8, given a desired pose, $${}^{O}\_{8}$$𝐓, the solver must be called with $${}^{O}\_{E}$$𝐓 = $${}^{O}\_{8}$$𝐓 $${}^{8}\_{E}$$𝐓.
+
+### Functions provided
+
+
 
