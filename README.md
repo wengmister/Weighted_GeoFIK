@@ -21,5 +21,5 @@ T8E = [[ 0.70710678  0.70710678  0.          0.        ]
        [ 0.          0.          1.          0.1034    ]
        [ 0.          0.          0.          1.       ]]
 ```
-Therefore, when working with frame 8, given a desired pose, $${}^{O}\_{8}$$𝐓, the solver must be called with $${}^{O}\_{E}$$𝐓 = $${}^{O}\_{8}$$𝐓$${}^{8}\_{E}$$𝐓
+Therefore, when working with frame 8, given a desired pose, $${}^{O}\_{8}$$𝐓, the solver must be called with $${}^{O}\_{E}$$𝐓 = $${}^{O}\_{8}$$𝐓 $${}^{8}\_{E}$$𝐓
 
