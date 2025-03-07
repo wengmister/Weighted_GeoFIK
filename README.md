@@ -28,7 +28,7 @@ T8E = [[ 0.70710678  0.70710678  0.          0.        ]
        [ 0.          0.          1.          0.1034    ]
        [ 0.          0.          0.          1.       ]]
 ```
-Therefore, when working with frame 8, given a desired pose, $${}^{O}\_{8}$$𝐓, the solver must be called with $${}^{O}\_{E}$$𝐓 = $${}^{O}\_{8}$$𝐓 $${}^{8}\_{E}$$𝐓.
+Therefore, when working with frame 8, given a desired pose $${}^{O}\_{8}$$𝐓, the solver must be called with $${}^{O}\_{E}$$𝐓 = $${}^{O}\_{8}$$𝐓 $${}^{8}\_{E}$$𝐓.
 
 ### Functions provided
 
@@ -108,7 +108,7 @@ Solves the IK with the swivel angle as free variable, generates joint angles of 
 
 ---
 
-**Functions that only calculate joint angles and Jacobian matrices**
+**Functions that calculate joint angles and Jacobian matrices**
 
 The following functions include the optional parameter `Jacobian_ee` which allows to specify an end-effector frame for the Jacobian. Note that this can be different to the end-effector frame of the IK which is _always_ $$E$$. When working with frames $$F$$, $$8$$ or $$6$$, this parameter allows the user to get the Jacobian in the desired frame without having to transform it manually, saving computational time.
 
