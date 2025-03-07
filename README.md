@@ -9,6 +9,10 @@
 
 For detailed information about the implementation, tests and experiments, see the preprint of our paper [arXiv:2503.03992v1](https://arxiv.org/abs/2503.03992v1).
 
+## Requirements
+
+This version has been tested with GCC compiler for C++ 17. The functions use the Eigen library which can be downloaded [here](https://eigen.tuxfamily.org). This version was tested with Eigen 3.4.0.
+
 ## Usage
 
 ### World and end-effector frames
@@ -89,8 +93,8 @@ unsigned int franka_ik_swivel(const array<double, 3>& r,
                               const unsigned int n_points = 600)
 ```
 Solves the IK with the swivel angle as free variable, generates joint angles of solutions. See our [paper](https://arxiv.org/abs/2503.03992v1) for the geometric definition of swivel angle used here. This is a numerical algorithm as no closed-form solution exists. However, since the solver only uses the strictly necessary geometric information in each iteration, the computational times on standard laptops range in the few hundreds of microseconds.
- * theta     swivel angle in radians (see paper for geometric defninition)
- * n_points  [optional] number of points to discretise the range of q7.
+ * `theta`     swivel angle in radians (see paper for geometric defninition)
+ * `n_points`  [optional] number of points to discretise the range of q7.
 
 ---
 
@@ -164,8 +168,8 @@ unsigned int franka_J_ik_swivel(const array<double, 3>& r,
                                 const unsigned int n_points = 600)
 ```
 Solves the IK with the swivel angle as free variable, generates the joint angles and the Jacobians of all solutions.
- * theta     swivel angle in radians (see paper for geometric defninition).
- * n_points  [optional] number of points to discretise the range of $$q\_7$$.
+ * `theta`     swivel angle in radians (see paper for geometric defninition).
+ * `n_points`  [optional] number of points to discretise the range of $$q\_7$$.
 
 ---
 
@@ -204,6 +208,51 @@ Forward kinematics function. Returns the transformation matrix of the specified 
 
 ---
 
+## Examples
 
+The file `example_geofik.cpp` shows how to import GeoFIK, and how to call each of the solvers with case examples. For the fastest results, it is recommended to compile with optimization level 3, using a GCC compiler:
+```
+g++ example_geofik.cpp geofik.cpp -O3 -o example_geofik.exe
+```
 
+### Minimal example:
 
+Consider the IK problem with end-effector position and orientation given by $${}^{O}\_{E}$$𝐓:
+
+```
+TOE = [[ 0.3522750000000002  0.8334980991082203  0.4256560000000001 -0.26617644]
+       [-0.6332361000000003 -0.12262271641620001 0.764183            0.31984145]
+       [ 0.6891402000000002 -0.5387433117066003  0.48460420000000004 0.76295964]
+       [ 0.                  0.                  0.                  1.       ]]
+```
+
+and a desired value for the fourth joint angle $$q\_4$$ = -2.3402. Then, the following code calls the solver:
+
+```
+unsigned int nsols; 
+array<double, 9> ROE = { 0.3522750000000002, 0.8334980991082203, 0.4256560000000001,
+                        -0.6332361000000003, -0.12262271641620001, 0.764183,
+                         0.6891402000000002, -0.5387433117066003, 0.48460420000000004 };
+array<double, 3> r = { -0.26617644,0.31984145,0.76295964 };
+double q4 = -2.3402;
+array<array<double, 7>, 8> qsols;
+nsols = franka_ik_q4(r, ROE, q4, qsols);
+```
+
+## Cite this work
+
+This paper is currently under review. The ArXiv preprint can be found [here](https://arxiv.org/abs/2503.03992v1) and can be cited as:
+
+* Pablo C. Lopez-Custodio, Yuhe Gong, Luis F.C. Figueredo, GeoFIK: A Fast and Reliable Geometric Solver for the IK of the Franka Arm based on Screw Theory Enabling Multiple Redundancy Parameters, PREPRINT: arXiv:2503.03992v1 (2025)
+
+```
+@misc{lopezcustodio2025geofikfastreliablegeometric,
+      title={GeoFIK: A Fast and Reliable Geometric Solver for the IK of the Franka Arm based on Screw Theory Enabling Multiple Redundancy Parameters}, 
+      author={Pablo C. Lopez-Custodio and Yuhe Gong and Luis F. C. Figueredo},
+      year={2025},
+      eprint={2503.03992},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2503.03992}, 
+}
+```
