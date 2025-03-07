@@ -34,12 +34,6 @@ Therefore, when working with frame 8, given a desired pose, $${}^{O}\_{8}$$𝐓,
 
 **Functions that only calculate joint angles**
 
-These parameters are required by all functions:
-* `r` position of frame $$E$$ in world frame $$O$$.
-* `ROE` rotation matrix of frame $$E$$ with respect to frame $$O$$ (row-first format).
-* `qsols` array to store 8 solutions.
-* `q1_sing` [optional] emergency value of $$q\_1$$ in case of singularity at shoulder joints (type-1 singularity in our [paper](https://arxiv.org/abs/2503.03992v1))
-
 All functions return the number of solutions found as an `unsigned int`.
 
 ---
@@ -52,7 +46,11 @@ unsigned int franka_ik_q7(const array<double, 3>& r,
                           const double q1_sing = PI / 2)
 ```
 Solves the IK with $$q\_7$$ as free variable, generates joint angles of solutions.
-* `q7` joint angle of joint 7 (radians).
+* `r` position of frame $$E$$ in world frame $$O$$.
+* `ROE` rotation matrix of frame $$E$$ with respect to frame $$O$$ (row-first format).
+* `q7` joint angle of joint 7 (radians). 
+* `qsols` array to store 8 solutions.
+* `q1_sing` [optional] emergency value of $$q\_1$$ in case of singularity at shoulder joints (type-1 singularity in our [paper](https://arxiv.org/abs/2503.03992v1))
 
 ---
 
@@ -65,7 +63,11 @@ unsigned int franka_ik_q6(const array<double, 3>& r,
                           const double q7_sing = 0)
 ```
 Solves the IK with $$q\_6$$ as free variable, generates joint angles of solutions.
+* `r` position of frame $$E$$ in world frame $$O$$.
+* `ROE` rotation matrix of frame $$E$$ with respect to frame $$O$$ (row-first format).
 * `q6`        joint angle of joint 6 (radians).
+* `qsols` array to store 8 solutions.
+* `q1_sing` [optional] emergency value of $$q\_1$$ in case of singularity at shoulder joints (type-1 singularity in our [paper](https://arxiv.org/abs/2503.03992v1))
 * `q7_sing`   [optional] emergency value of q7 in case of type-2 singularity (see our [paper](https://arxiv.org/abs/2503.03992v1)).
 
 ---
@@ -79,7 +81,11 @@ unsigned int franka_ik_q4(const array<double, 3>& r,
                           const double q7_sing = 0)
 ```
 Solves the IK with $$q\_4$$ as free variable, generates joint angles of solutions.
+* `r` position of frame $$E$$ in world frame $$O$$.
+* `ROE` rotation matrix of frame $$E$$ with respect to frame $$O$$ (row-first format).
 * `q4`        joint angle of joint 4 (radians).
+* `qsols` array to store 8 solutions.
+* `q1_sing` [optional] emergency value of $$q\_1$$ in case of singularity at shoulder joints (type-1 singularity in our [paper](https://arxiv.org/abs/2503.03992v1))
 * `q7_sing`   [optional] emergency value of q7 in case of type-2 singularity (see our [paper](https://arxiv.org/abs/2503.03992v1))
 
 ---
@@ -93,17 +99,18 @@ unsigned int franka_ik_swivel(const array<double, 3>& r,
                               const unsigned int n_points = 600)
 ```
 Solves the IK with the swivel angle as free variable, generates joint angles of solutions. See our [paper](https://arxiv.org/abs/2503.03992v1) for the geometric definition of swivel angle used here. This is a numerical algorithm as no closed-form solution exists. However, since the solver only uses the strictly necessary geometric information in each iteration, the computational times on standard laptops range in the few hundreds of microseconds.
- * `theta`     swivel angle in radians (see paper for geometric defninition)
- * `n_points`  [optional] number of points to discretise the range of q7.
+* `r` position of frame $$E$$ in world frame $$O$$.
+* `ROE` rotation matrix of frame $$E$$ with respect to frame $$O$$ (row-first format).
+* `theta`     swivel angle in radians (see paper for geometric defninition).
+* `qsols` array to store 8 solutions.
+* `q1_sing` [optional] emergency value of $$q\_1$$ in case of singularity at shoulder joints (type-1 singularity in our [paper](https://arxiv.org/abs/2503.03992v1))
+* `n_points`  [optional] number of points to discretise the range of q7.
 
 ---
 
 **Functions that only calculate joint angles and Jacobian matrices**
 
-In addition to `r`, `ROE`, `qsols` and `q1_sing`, all the following functions require these parameters:
-* `Jsols` array to store 8 Jacobian solutions.
-* `joint_angles` [optional] if `false` only Jacobians are returned.
-* `Jacobian_ee` [optional] end-effector frame of the Jacobian (`'E'`, `'F'`, `'8'` or `'6'`). This can be different to the end-effector frame of the IK which is _always_ $$E$$. When working with frames $$F$$, $$8$$ or $$6$$, this parameter allows the user to get the Jacobian in the desired frame without having to transform it manually, saving computational time.
+The following functions include the optional parameter `Jacobian_ee` which allows to specify an end-effector frame for the Jacobian. Note that this can be different to the end-effector frame of the IK which is _always_ $$E$$. When working with frames $$F$$, $$8$$ or $$6$$, this parameter allows the user to get the Jacobian in the desired frame without having to transform it manually, saving computational time.
 
 ---
 
@@ -118,7 +125,14 @@ unsigned int franka_J_ik_q7(const array<double, 3>& r,
                             const double q1_sing = PI / 2)
 ```
 Solves the IK with $$q\_7$$ as free variable, generates the joint angles and the Jacobians of all solutions.
+* `r` position of frame $$E$$ in world frame $$O$$.
+* `ROE` rotation matrix of frame $$E$$ with respect to frame $$O$$ (row-first format).
 * `q7` joint angle of joint 7 (radians).
+* `Jsols` array to store 8 Jacobian solutions.
+* `qsols` array to store 8 solutions.
+* `joint_angles` [optional] if `false` only Jacobians are returned.
+* `Jacobian_ee` [optional] end-effector frame of the Jacobian (`'E'`, `'F'`, `'8'` or `'6'`). 
+* `q1_sing` [optional] emergency value of $$q\_1$$ in case of singularity at shoulder joints (type-1 singularity in our [paper](https://arxiv.org/abs/2503.03992v1))
 
 ---
 
@@ -134,7 +148,14 @@ unsigned int franka_J_ik_q6(const array<double, 3>& r,
                             const double q7_sing = 0)
 ```
 Solves the IK with $$q\_6$$ as free variable, generates the joint angles and the Jacobians of all solutions.
+* `r` position of frame $$E$$ in world frame $$O$$.
+* `ROE` rotation matrix of frame $$E$$ with respect to frame $$O$$ (row-first format).
 * `q6`        joint angle of joint 6 (radians).
+* `Jsols` array to store 8 Jacobian solutions.
+* `qsols` array to store 8 solutions.
+* `joint_angles` [optional] if `false` only Jacobians are returned.
+* `Jacobian_ee` [optional] end-effector frame of the Jacobian (`'E'`, `'F'`, `'8'` or `'6'`). 
+* `q1_sing` [optional] emergency value of $$q\_1$$ in case of singularity at shoulder joints (type-1 singularity in our [paper](https://arxiv.org/abs/2503.03992v1))
 * `q7_sing`   [optional] emergency value of $$q\_7$$ in case of type-2 singularity (see our [paper](https://arxiv.org/abs/2503.03992v1)).
 
 ---
@@ -151,7 +172,14 @@ unsigned int franka_J_ik_q4(const array<double, 3>& r,
                             const double q7_sing = 0)
 ```
 Solves the IK with $$q\_4$$ as free variable, generates the joint angles and the Jacobians of all solutions.
+* `r` position of frame $$E$$ in world frame $$O$$.
+* `ROE` rotation matrix of frame $$E$$ with respect to frame $$O$$ (row-first format).
 * `q4`        joint angle of joint 4 (radians).
+* `Jsols` array to store 8 Jacobian solutions.
+* `qsols` array to store 8 solutions.
+* `joint_angles` [optional] if `false` only Jacobians are returned.
+* `Jacobian_ee` [optional] end-effector frame of the Jacobian (`'E'`, `'F'`, `'8'` or `'6'`). 
+* `q1_sing` [optional] emergency value of $$q\_1$$ in case of singularity at shoulder joints (type-1 singularity in our [paper](https://arxiv.org/abs/2503.03992v1))
 * `q7_sing`   [optional] emergency value of $$q\_7$$ in case of type-2 singularity (see our [paper](https://arxiv.org/abs/2503.03992v1)).
 
 ---
@@ -168,8 +196,15 @@ unsigned int franka_J_ik_swivel(const array<double, 3>& r,
                                 const unsigned int n_points = 600)
 ```
 Solves the IK with the swivel angle as free variable, generates the joint angles and the Jacobians of all solutions.
- * `theta`     swivel angle in radians (see paper for geometric defninition).
- * `n_points`  [optional] number of points to discretise the range of $$q\_7$$.
+* `r` position of frame $$E$$ in world frame $$O$$.
+* `ROE` rotation matrix of frame $$E$$ with respect to frame $$O$$ (row-first format).
+* `theta`     swivel angle in radians (see paper for geometric defninition).
+* `Jsols` array to store 8 Jacobian solutions.
+* `qsols` array to store 8 solutions.
+* `joint_angles` [optional] if `false` only Jacobians are returned.
+* `Jacobian_ee` [optional] end-effector frame of the Jacobian (`'E'`, `'F'`, `'8'` or `'6'`). 
+* `q1_sing` [optional] emergency value of $$q\_1$$ in case of singularity at shoulder joints (type-1 singularity in our [paper](https://arxiv.org/abs/2503.03992v1))
+* `n_points`  [optional] number of points to discretise the range of $$q\_7$$.
 
 ---
 
@@ -243,7 +278,7 @@ nsols = franka_ik_q4(r, ROE, q4, qsols);
 
 This paper is currently under review. The ArXiv preprint can be found [here](https://arxiv.org/abs/2503.03992v1) and can be cited as:
 
-* Pablo C. Lopez-Custodio, Yuhe Gong, Luis F.C. Figueredo, GeoFIK: A Fast and Reliable Geometric Solver for the IK of the Franka Arm based on Screw Theory Enabling Multiple Redundancy Parameters, PREPRINT: arXiv:2503.03992v1 (2025)
+* Pablo C. Lopez-Custodio, Yuhe Gong, Luis F.C. Figueredo, GeoFIK: “A Fast and Reliable Geometric Solver for the IK of the Franka Arm based on Screw Theory Enabling Multiple Redundancy Parameters”, PREPRINT: arXiv:2503.03992v1 (2025)
 
 ```
 @misc{lopezcustodio2025geofikfastreliablegeometric,
