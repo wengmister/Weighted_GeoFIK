@@ -17,6 +17,7 @@ GeoFIK uses frame $$E$$ as end-effector frame, and frame $$O$$ as world frame, a
 
 | ![frames of the franka arm](frames.png) |
 |:---------------------------------------:|
+
 Some applications, especially when the gripper is removed, may use the flage frame 8 (`panda_link8_sc`) also called $$F$$ as end-effector frame. The transformation between this frame and frame $$E$$ is shown in the figure above and can be represented by the following transformation matrix $${}^{8}\_{E}$$𝐓: 
 ```
 T8E = [[ 0.70710678  0.70710678  0.          0.        ]
