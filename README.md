@@ -278,7 +278,7 @@ nsols = franka_ik_q4(r, ROE, q4, qsols);
 
 This paper is currently under review. The ArXiv preprint can be found [here](https://arxiv.org/abs/2503.03992v1) and can be cited as:
 
-* Pablo C. Lopez-Custodio, Yuhe Gong, Luis F.C. Figueredo, GeoFIK: “A Fast and Reliable Geometric Solver for the IK of the Franka Arm based on Screw Theory Enabling Multiple Redundancy Parameters”, PREPRINT: arXiv:2503.03992v1 (2025)
+* Lopez-Custodio PC, Gong Y, Figueredo LFC, “GeoFIK: A Fast and Reliable Geometric Solver for the IK of the Franka Arm based on Screw Theory Enabling Multiple Redundancy Parameters”, PREPRINT: arXiv:2503.03992v1 (2025)
 
 ```
 @misc{lopezcustodio2025geofikfastreliablegeometric,
