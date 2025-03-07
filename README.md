@@ -34,7 +34,7 @@ Therefore, when working with frame 8, given a desired pose $${}^{O}\_{8}$$𝐓, 
 
 **Functions that only calculate joint angles**
 
-All functions return the number of solutions found as an `unsigned int`.
+All functions return the number of solutions found as an `unsigned int`. 8 solutions for joint angles are stored in an array `qsols` which is passed by reference by the caller. If a solution does not exist `nan` is assigned to all the entries of the corresponding row. If a joint angle is outside the joint limits in a found solution, `nan` is assigned to the joint angle.
 
 ---
 
@@ -261,7 +261,7 @@ TOE = [[ 0.3522750000000002  0.8334980991082203  0.4256560000000001 -0.26617644]
        [ 0.                  0.                  0.                  1.       ]]
 ```
 
-and a desired value for the fourth joint angle $$q\_4$$ = -2.3402. Then, the following code calls the solver:
+and a desired value for the fourth joint angle $$q\_4$$ = -2.3402. Then, the following code calls the solver and saves the solutions in the `qsols` array:
 
 ```
 unsigned int nsols; 
@@ -273,6 +273,8 @@ double q4 = -2.3402;
 array<array<double, 7>, 8> qsols;
 nsols = franka_ik_q4(r, ROE, q4, qsols);
 ```
+
+The result is stored in `qsols`. `nan` is assigned to joint angles that are outside the joint limits, and to entire solutions that cannot be assamblied.
 
 ## Cite this work
 
