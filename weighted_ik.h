@@ -14,42 +14,81 @@ using namespace std::chrono;
 
 // Structure to hold the result of weighted IK optimization
 struct WeightedIKResult {
-    bool success;                           // Whether a valid solution was found
-    std::array<double, 7> joint_angles;     // Optimal joint angles in radians
-    double q7_optimal;                      // Optimal q7 value
-    double score;                           // Final optimization score
-    double manipulability;                  // Manipulability measure
-    double neutral_distance;                // Distance from neutral pose
-    double current_distance;                // Distance from current pose
-    int solution_index;                     // Which solution index was selected
-    std::array<std::array<double, 6>, 7> jacobian; // Jacobian matrix
+    bool success;
+    std::array<double, 7> joint_angles;
+    double q7_optimal;
+    double score;
+    double manipulability;
+    double neutral_distance;
+    double current_distance;
+    int solution_index;
+    std::array<std::array<double, 6>, 7> jacobian;
     
-    // Statistics
-    int total_solutions_found;              // Total solutions across all q7 values
-    int valid_solutions_count;              // Number of valid solutions
-    int q7_values_tested;                   // Number of q7 values tested
-    long duration_microseconds;             // Computation time in microseconds
+    int total_solutions_found;
+    int valid_solutions_count;
+    int q7_values_tested;
+    long duration_microseconds;
 };
 
-// Main function for weighted IK optimization
+class WeightedIKSolver {
+private:
+    // Pre-configured parameters (robot-specific, don't change)
+    std::array<double, 7> neutral_pose_;
+    double weight_manip_;
+    double weight_neutral_;
+    double weight_current_;
+    
+    // Pre-computed constants
+    double normalization_factor_;
+    bool verbose_;
+    
+    // Helper methods
+    double calculate_manipulability(const std::array<std::array<double, 6>, 7>& J) const;
+    double calculate_distance(const std::array<double, 7>& q1, const std::array<double, 7>& q2) const;
+    double compute_score(double manipulability, double neutral_dist, double current_dist) const;
+
+public:
+    // Constructor - only takes robot-specific parameters that don't change
+    WeightedIKSolver(
+        const std::array<double, 7>& neutral_pose,
+        double weight_manip,
+        double weight_neutral,
+        double weight_current,
+        bool verbose = true
+    );
+    
+    // Main solving method - current_pose is passed in as it changes with robot motion
+    WeightedIKResult solve_q7(
+        const std::array<double, 3>& target_position,
+        const std::array<double, 9>& target_orientation,
+        const std::array<double, 7>& current_pose,  // Current robot state
+        double q7_start,
+        double q7_end,
+        double step_size
+    );
+    
+    // Update weights without recreating object
+    void update_weights(double weight_manip, double weight_neutral, double weight_current);
+    
+    // Update neutral pose (rarely needed)
+    void update_neutral_pose(const std::array<double, 7>& neutral_pose);
+    
+    // Getters
+    const std::array<double, 7>& get_neutral_pose() const { return neutral_pose_; }
+    void set_verbose(bool verbose) { verbose_ = verbose; }
+};
+
+// Standalone functions for backward compatibility
+double calculate_manipulability_weighted(const std::array<std::array<double, 6>, 7>& J);
 WeightedIKResult weighted_ik_q7(
     const std::array<double, 3>& target_position,
     const std::array<double, 9>& target_orientation,
     const std::array<double, 7>& neutral_pose,
     const std::array<double, 7>& current_pose,
-    double q7_start,
-    double q7_end,
-    double step_size,
-    double weight_manip,
-    double weight_neutral,
-    double weight_current,
+    double q7_start, double q7_end, double step_size,
+    double weight_manip, double weight_neutral, double weight_current,
     bool verbose = true
 );
-
-// Helper function to calculate manipulability from Jacobian
-double calculate_manipulability_weighted(const std::array<std::array<double, 6>, 7>& J);
-
-// Function to print detailed results
 void print_weighted_ik_results(const WeightedIKResult& result);
 
 #endif // WEIGHTED_IK_H
