@@ -10,7 +10,7 @@ using namespace std::chrono;
 
 #include "geofik.h"
 
-// compile with: g++ example_geofik.cpp geofik.cpp -O3 -o example_geofik.exe
+// compile with: g++ -I/usr/include/eigen3 example_geofik.cpp geofik.cpp -O3 -o example_geofik.exe
 
 void print_results(const array<array<double, 7>, 8>& sols, const bool swivel = false, const double theta = 0.0);
 void print_results_J(const array<array<array<double, 6>, 7>, 8>& Jsols, const array<array<double, 7>, 8>& qsols, const bool joint_angles, const bool swivel = false, const double theta = 0.0);
