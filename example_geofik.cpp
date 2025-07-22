@@ -4,6 +4,7 @@
 #include <chrono>
 #include "Eigen/Dense"
 #include <iomanip>
+#include <limits>
 using namespace std;
 using namespace std::chrono;
 
@@ -235,10 +236,10 @@ int main() {
     // Weights for multi-objective optimization
     double w_manipulability = 1.0;    // Higher is better
     double w_neutral_distance = 0.5;  // Lower is better
-    double w_current_distance = 0.3;  // Lower is better
+    double w_current_distance = 2.0;  // Lower is better
     
     // Variables for tracking best solution
-    double best_score = -1.0;
+    double best_score = -std::numeric_limits<double>::infinity();  // Changed from -1.0
     double best_manipulability = -1.0;
     double best_neutral_distance = 1e6;
     double best_current_distance = 1e6;
@@ -336,7 +337,7 @@ int main() {
     cout << "  Current distance weight: " << w_current_distance << endl;
     cout << endl;
     
-    if (best_score > -1.0) {
+    if (best_score > -std::numeric_limits<double>::infinity()) {  // Changed from best_score > -1.0
         cout << "BEST SOLUTION:" << endl;
         cout << "Best q7: " << best_q7 << " rad" << endl;
         cout << "Best overall score: " << std::setprecision(8) << best_score << endl;
