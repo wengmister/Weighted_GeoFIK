@@ -46,25 +46,25 @@ int main() {
     auto duration = duration_cast<microseconds>(end - start);
 
     // TEST franka_ik_q7()
-    cout << endl << "=======================================================" << endl;
-    cout << "franka_ik_q7()" << endl;
-    cout << "=======================================================" << endl;
-    ROE = {0.6688331000000003,0.3170534383478098,0.6724130000000006,-0.6398146000000005,-0.2150772409286401,0.7378204999999999,0.3785492999999998,-0.9236984268883508,0.05900459999999996};
-    r = {0.61674948,0.32278029,0.56790512};
-    q7 = -0.37218362471412003 ;
-    start = high_resolution_clock::now();
-    nsols = franka_ik_q7(r, ROE, q7, qsols);
-    end = high_resolution_clock::now();
-    duration = duration_cast<microseconds>(end - start);
-    print_results(qsols);
-    cout << "number of solutions found:" << nsols;
-    cout << endl << "duration (only q):" << duration.count() << endl;
-    // second run
-    start = high_resolution_clock::now();
-    nsols = franka_ik_q7(r, ROE, q7, qsols);
-    end = high_resolution_clock::now();
-    duration = duration_cast<microseconds>(end - start);
-    cout << endl << "duration in second run:" << duration.count() << endl;
+    // cout << endl << "=======================================================" << endl;
+    // cout << "franka_ik_q7()" << endl;
+    // cout << "=======================================================" << endl;
+    // ROE = {0.6688331000000003,0.3170534383478098,0.6724130000000006,-0.6398146000000005,-0.2150772409286401,0.7378204999999999,0.3785492999999998,-0.9236984268883508,0.05900459999999996};
+    // r = {0.61674948,0.32278029,0.56790512};
+    // q7 = -0.37218362471412003 ;
+    // start = high_resolution_clock::now();
+    // nsols = franka_ik_q7(r, ROE, q7, qsols);
+    // end = high_resolution_clock::now();
+    // duration = duration_cast<microseconds>(end - start);
+    // print_results(qsols);
+    // cout << "number of solutions found:" << nsols;
+    // cout << endl << "duration (only q):" << duration.count() << endl;
+    // // second run
+    // start = high_resolution_clock::now();
+    // nsols = franka_ik_q7(r, ROE, q7, qsols);
+    // end = high_resolution_clock::now();
+    // duration = duration_cast<microseconds>(end - start);
+    // cout << endl << "duration in second run:" << duration.count() << endl;
 
 
     // TEST franka_ik_q6()
@@ -136,6 +136,7 @@ int main() {
     */
 
     // TEST franka_J_ik_q7()
+    /*
     cout << endl << "=======================================================" << endl;
     cout << "franka_J_ik_q7()" << endl;
     cout << "=======================================================" << endl;
@@ -155,6 +156,7 @@ int main() {
     print_results_J(Jsols, qsols, joint_angles);
     cout << "number of solutions found: " << nsols;
     cout << endl<<"duration in microsecond:" << duration.count() << endl;
+    */
 
     // TEST franka_J_ik_q6()
     /*
@@ -215,6 +217,105 @@ int main() {
     cout << endl << "duration:" << duration.count() << endl;
     */
 
+    // TEST franka_J_ik_q7() - Sweep through q7 values
+    cout << endl << "=======================================================" << endl;
+    cout << "franka_J_ik_q7() - Q7 Sweep for Best Manipulability" << endl;
+    cout << "=======================================================" << endl;
+    
+    ROE = { -0.189536, 0.0420467, -0.980973,
+             0.404078, -0.907217, -0.116958,
+            -0.894873, -0.418557, 0.15496 };
+    r = { 0.23189, -0.0815989, 0.607269 };
+    joint_angles = true;
+    
+    // Variables for tracking best solution
+    double best_manipulability = -1.0;
+    double best_q7 = 0.0;
+    array<double, 7> best_qsol;
+    array<array<double, 6>, 7> best_Jsol;
+    int best_solution_index = -1;
+    
+    // Sweep parameters
+    double q7_start = 0.3;
+    double q7_end = 1.9;
+    double q7_step = 0.01;
+    int total_solutions_found = 0;
+    
+    start = high_resolution_clock::now();
+    
+    // Sweep through q7 values
+    for (double q7_sweep = q7_start; q7_sweep <= q7_end; q7_sweep += q7_step) {
+        nsols = franka_J_ik_q7(r, ROE, q7_sweep, Jsols, qsols, joint_angles);
+        total_solutions_found += nsols;
+        
+        // Check each solution for this q7 value
+        for (int i = 0; i < nsols; i++) {
+            // Check if solution is valid (all joints within limits)
+            bool valid_solution = true;
+            for (int j = 0; j < 7; j++) {
+                if (isnan(qsols[i][j])) {
+                    valid_solution = false;
+                    break;
+                }
+            }
+            
+            if (valid_solution) {
+                double manipulability = calculate_manipulability(Jsols[i]);
+                
+                // Update best solution if this one is better
+                if (manipulability > best_manipulability) {
+                    best_manipulability = manipulability;
+                    best_q7 = q7_sweep;
+                    best_qsol = qsols[i];
+                    best_Jsol = Jsols[i];
+                    best_solution_index = i;
+                }
+            }
+        }
+    }
+    
+    end = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(end - start);
+    
+    // Print results
+    cout << "Sweep completed!" << endl;
+    cout << "Q7 range: " << q7_start << " to " << q7_end << " rad (step: " << q7_step << ")" << endl;
+    cout << "Total q7 values tested: " << (int)((q7_end - q7_start) / q7_step) + 1 << endl;
+    cout << "Total solutions found: " << total_solutions_found << endl;
+    cout << "Duration: " << duration.count() << " microseconds (" << duration.count() / 1000.0 << " milliseconds)" << endl;
+    cout << endl;
+    
+    if (best_manipulability > 0) {
+        cout << "BEST SOLUTION:" << endl;
+        cout << "Best q7: " << best_q7 << " rad" << endl;
+        cout << "Best manipulability: " << std::setprecision(8) << best_manipulability << endl;
+        cout << "Solution index: " << best_solution_index + 1 << endl;
+        cout << endl;
+        
+        cout << "Joint angles (degrees):" << endl;
+        for (int j = 0; j < 7; j++) {
+            cout << "q_" << j + 1 << " = " << std::setprecision(6) << best_qsol[j] * 180 / PI << endl;
+        }
+        cout << endl;
+        
+        cout << "Jacobian:" << endl;
+        for (int j = 0; j < 7; j++) {
+            for (int k = 0; k < 6; k++) {
+                cout << std::setw(12) << std::setprecision(6) << best_Jsol[j][k];
+            }
+            cout << endl;
+        }
+        cout << endl;
+        
+        // Forward kinematics verification
+        Eigen::Matrix4d T_best = franka_fk(best_qsol);
+        cout << "Forward kinematics verification:" << endl;
+        cout << T_best << endl;
+        
+    } else {
+        cout << "No valid solutions found in the q7 sweep range!" << endl;
+    }
+    
     return 0;
 }
 
