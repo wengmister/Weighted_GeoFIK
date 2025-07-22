@@ -219,7 +219,7 @@ int main() {
 
     // TEST franka_J_ik_q7() - Sweep through q7 values
     cout << endl << "=======================================================" << endl;
-    cout << "franka_J_ik_q7() - Q7 Sweep for Best Manipulability" << endl;
+    cout << "franka_J_ik_q7() - Q7 Sweep for Best IK Solution" << endl;
     cout << "=======================================================" << endl;
     
     ROE = { -0.189536, 0.0420467, -0.980973,
@@ -228,8 +228,20 @@ int main() {
     r = { 0.23189, -0.0815989, 0.607269 };
     joint_angles = true;
     
+    // Reference poses
+    array<double, 7> neutral_pose = {0.0, 0.0, 0.0, -1.5, 0.0, 1.86, 0.0};
+    array<double, 7> current_pose = {-1.5, 0.5, 1.5, -1.5, 0.5, 0.5, 1.5};
+    
+    // Weights for multi-objective optimization
+    double w_manipulability = 1.0;    // Higher is better
+    double w_neutral_distance = 0.5;  // Lower is better
+    double w_current_distance = 0.3;  // Lower is better
+    
     // Variables for tracking best solution
+    double best_score = -1.0;
     double best_manipulability = -1.0;
+    double best_neutral_distance = 1e6;
+    double best_current_distance = 1e6;
     double best_q7 = 0.0;
     array<double, 7> best_qsol;
     array<array<double, 6>, 7> best_Jsol;
@@ -240,6 +252,7 @@ int main() {
     double q7_end = 1.9;
     double q7_step = 0.01;
     int total_solutions_found = 0;
+    int valid_solutions_count = 0;
     
     start = high_resolution_clock::now();
     
@@ -260,11 +273,42 @@ int main() {
             }
             
             if (valid_solution) {
+                valid_solutions_count++;
+                
+                // Calculate manipulability
                 double manipulability = calculate_manipulability(Jsols[i]);
                 
+                // Calculate distance from neutral pose
+                double neutral_distance = 0.0;
+                for (int j = 0; j < 7; j++) {
+                    double diff = qsols[i][j] - neutral_pose[j];
+                    neutral_distance += diff * diff;
+                }
+                neutral_distance = sqrt(neutral_distance);
+                
+                // Calculate distance from current pose
+                double current_distance = 0.0;
+                for (int j = 0; j < 7; j++) {
+                    double diff = qsols[i][j] - current_pose[j];
+                    current_distance += diff * diff;
+                }
+                current_distance = sqrt(current_distance);
+                
+                // Calculate weighted score (higher is better)
+                // Normalize distances by dividing by typical joint range (~6.28 rad for most joints)
+                double normalized_neutral_dist = neutral_distance / (7 * 6.28);
+                double normalized_current_dist = current_distance / (7 * 6.28);
+                
+                double score = w_manipulability * manipulability 
+                             - w_neutral_distance * normalized_neutral_dist 
+                             - w_current_distance * normalized_current_dist;
+                
                 // Update best solution if this one is better
-                if (manipulability > best_manipulability) {
+                if (score > best_score) {
+                    best_score = score;
                     best_manipulability = manipulability;
+                    best_neutral_distance = neutral_distance;
+                    best_current_distance = current_distance;
                     best_q7 = q7_sweep;
                     best_qsol = qsols[i];
                     best_Jsol = Jsols[i];
@@ -282,14 +326,33 @@ int main() {
     cout << "Q7 range: " << q7_start << " to " << q7_end << " rad (step: " << q7_step << ")" << endl;
     cout << "Total q7 values tested: " << (int)((q7_end - q7_start) / q7_step) + 1 << endl;
     cout << "Total solutions found: " << total_solutions_found << endl;
+    cout << "Valid solutions: " << valid_solutions_count << endl;
     cout << "Duration: " << duration.count() << " microseconds (" << duration.count() / 1000.0 << " milliseconds)" << endl;
     cout << endl;
     
-    if (best_manipulability > 0) {
+    cout << "Optimization weights:" << endl;
+    cout << "  Manipulability weight: " << w_manipulability << endl;
+    cout << "  Neutral distance weight: " << w_neutral_distance << endl;
+    cout << "  Current distance weight: " << w_current_distance << endl;
+    cout << endl;
+    
+    if (best_score > -1.0) {
         cout << "BEST SOLUTION:" << endl;
         cout << "Best q7: " << best_q7 << " rad" << endl;
-        cout << "Best manipulability: " << std::setprecision(8) << best_manipulability << endl;
+        cout << "Best overall score: " << std::setprecision(8) << best_score << endl;
         cout << "Solution index: " << best_solution_index + 1 << endl;
+        cout << endl;
+        
+        cout << "Solution metrics:" << endl;
+        cout << "  Manipulability: " << std::setprecision(6) << best_manipulability << endl;
+        cout << "  Distance from neutral: " << std::setprecision(6) << best_neutral_distance << " rad" << endl;
+        cout << "  Distance from current: " << std::setprecision(6) << best_current_distance << " rad" << endl;
+        cout << endl;
+        
+        cout << "Joint angles (radians):" << endl;
+        for (int j = 0; j < 7; j++) {
+            cout << "q_" << j + 1 << " = " << std::setprecision(6) << best_qsol[j] << endl;
+        }
         cout << endl;
         
         cout << "Joint angles (degrees):" << endl;
@@ -298,14 +361,31 @@ int main() {
         }
         cout << endl;
         
-        cout << "Jacobian:" << endl;
+        cout << "Comparison with reference poses:" << endl;
+        cout << "Neutral pose [0, 0, 0, -1.5, 0, 1.86, 0]:" << endl;
         for (int j = 0; j < 7; j++) {
-            for (int k = 0; k < 6; k++) {
-                cout << std::setw(12) << std::setprecision(6) << best_Jsol[j][k];
-            }
-            cout << endl;
+            cout << "  Joint " << j + 1 << ": " << std::setprecision(4) 
+                 << "best=" << best_qsol[j] << ", neutral=" << neutral_pose[j] 
+                 << ", diff=" << (best_qsol[j] - neutral_pose[j]) << endl;
         }
         cout << endl;
+        
+        cout << "Current pose [-1.5, 0.5, 1.5, -1.5, 0.5, 0.5, 1.5]:" << endl;
+        for (int j = 0; j < 7; j++) {
+            cout << "  Joint " << j + 1 << ": " << std::setprecision(4) 
+                 << "best=" << best_qsol[j] << ", current=" << current_pose[j] 
+                 << ", diff=" << (best_qsol[j] - current_pose[j]) << endl;
+        }
+        cout << endl;
+        
+        // cout << "Jacobian:" << endl;
+        // for (int j = 0; j < 7; j++) {
+        //     for (int k = 0; k < 6; k++) {
+        //         cout << std::setw(12) << std::setprecision(6) << best_Jsol[j][k];
+        //     }
+        //     cout << endl;
+        // }
+        // cout << endl;
         
         // Forward kinematics verification
         Eigen::Matrix4d T_best = franka_fk(best_qsol);
