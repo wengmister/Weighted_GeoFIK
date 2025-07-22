@@ -14,6 +14,24 @@ using namespace std::chrono;
 void print_results(const array<array<double, 7>, 8>& sols, const bool swivel = false, const double theta = 0.0);
 void print_results_J(const array<array<array<double, 6>, 7>, 8>& Jsols, const array<array<double, 7>, 8>& qsols, const bool joint_angles, const bool swivel = false, const double theta = 0.0);
 
+// Function to calculate manipulability from Jacobian
+double calculate_manipulability(const array<array<double, 6>, 7>& J) {
+    // Convert array to Eigen matrix
+    Eigen::MatrixXd jacobian(6, 7);
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++) {
+            jacobian(i, j) = J[j][i]; // Note: transposed because J[joint][dof]
+        }
+    }
+    
+    // Calculate manipulability as sqrt(det(J * J^T))
+    Eigen::MatrixXd JJT = jacobian * jacobian.transpose();
+    double det = JJT.determinant();
+    
+    // Return sqrt of determinant (manipulability measure)
+    return (det >= 0) ? sqrt(det) : 0.0;
+}
+
 int main() {
 
     unsigned int nsols = 0; 
@@ -118,13 +136,12 @@ int main() {
     */
 
     // TEST franka_J_ik_q7()
-    /*
     cout << endl << "=======================================================" << endl;
     cout << "franka_J_ik_q7()" << endl;
     cout << "=======================================================" << endl;
-    ROE = {0.6688331000000003,0.3170534383478098,0.6724130000000006,-0.6398146000000005,-0.2150772409286401,0.7378204999999999,0.3785492999999998,-0.9236984268883508,0.05900459999999996};
-    r = {0.61674948,0.32278029,0.56790512};
-    q7 = -0.37218362471412003 ;
+    // ROE = {0.6688331000000003,0.3170534383478098,0.6724130000000006,-0.6398146000000005,-0.2150772409286401,0.7378204999999999,0.3785492999999998,-0.9236984268883508,0.05900459999999996};
+    // r = {0.61674948,0.32278029,0.56790512};
+    // q7 = -0.37218362471412003 ;
     ROE = { -0.189536, 0.0420467, -0.980973,
              0.404078, -0.907217, -0.116958,
             -0.894873, -0.418557, 0.15496 };
@@ -137,8 +154,7 @@ int main() {
     duration = duration_cast<microseconds>(end - start);
     print_results_J(Jsols, qsols, joint_angles);
     cout << "number of solutions found: " << nsols;
-    cout << endl<<"duration:" << duration.count() << endl;
-    */
+    cout << endl<<"duration in microsecond:" << duration.count() << endl;
 
     // TEST franka_J_ik_q6()
     /*
@@ -248,6 +264,11 @@ void print_results_J(const array<array<array<double, 6>, 7>, 8>& Jsols, const ar
             }
             cout << endl;
         }
+        
+        // Calculate and display manipulability
+        double manipulability = calculate_manipulability(Jsols[i]);
+        cout << "Manipulability: " << std::setprecision(6) << manipulability << endl;
+        
         if (joint_angles) {
             sol_in_lims = true;
             cout << "joint angles" << endl;
