@@ -49,12 +49,12 @@ void run_benchmark(const std::string& test_name, double q7_min, double q7_max, d
          << "Score improvement: " << std::scientific << std::setprecision(2) << score_improvement << endl;
     
     if (result_opt.success && result_grid.success) {
-        cout << "✅ Both methods successful";
+        cout << "Both methods successful";
         if (score_improvement > 1e-6) cout << " (optimization better)";
         else if (score_improvement < -1e-6) cout << " (grid better)";  
         else cout << " (equivalent)";
     } else {
-        cout << "❌ Success mismatch: Grid=" << result_grid.success << ", Opt=" << result_opt.success;
+        cout << "Success mismatch: Grid=" << result_grid.success << ", Opt=" << result_opt.success;
     }
     cout << endl << endl;
 }
